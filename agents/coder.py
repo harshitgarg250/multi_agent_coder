@@ -12,19 +12,21 @@ class CoderAgent:
     def generate_code(self, task: str) -> str:
         """
         task: a single coding task in natural language
-        return: code-only string
+        return: Python code as plain text (no markdown, no explanations)
         """
         prompt = f"""
-You are a coding assistant. Generate clean, working code.
+You are a senior software engineer.
 
-Task:
+Your job:
+- Write Python code that completes the TASK below.
+- Return ONLY Python code.
+- Do NOT include markdown fences (no ```).
+- Do NOT include explanations, comments outside code, or alternative versions.
+- Do NOT print example calls unless the TASK explicitly asks for them.
+- Make sure the code is syntactically valid and can run as-is.
+
+TASK:
 {task}
-
-Rules:
-- Only generate code.
-- Use Python by default unless specified.
-- Add short comments in code.
-- Do not add explanation outside the code.
 """
 
         response = ollama.chat(
