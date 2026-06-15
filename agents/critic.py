@@ -9,7 +9,7 @@ class CriticAgent:
     def __init__(self, model_name: str = MODEL_NAME):
         self.model_name = model_name
 
-    def review_code(self, task: str, code: str) -> str:
+    def review(self, task: str, code: str, test_result: dict | None = None) -> str:
         prompt = f"""
 You are a strict code reviewer.
 
@@ -19,7 +19,7 @@ Task:
 Code:
 {code}
 
-Review this code in 3-5 short bullet points.
+Return 3-5 short bullet points.
 Mention bugs, missing edge cases, or say if it looks good.
 Do not add extra explanation outside the bullets.
 """

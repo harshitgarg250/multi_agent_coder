@@ -9,7 +9,7 @@ class PlannerAgent:
     def __init__(self, model_name: str = MODEL_NAME):
         self.model_name = model_name
 
-    def plan_tasks(self, spec: str) -> list[str]:
+    def create_tasks(self, spec: str) -> list[str]:
         prompt = f"""
 You are a planning agent. Break the user's coding request into 2-4 clear coding tasks.
 

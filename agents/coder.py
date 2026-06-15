@@ -15,15 +15,19 @@ class CoderAgent:
         return: Python code as plain text (no markdown, no explanations)
         """
         prompt = f"""
-You are a senior software engineer.
+You are a senior Python developer.
 
-Your job:
-- Write Python code that completes the TASK below.
+Write ONE complete Python script for this TASK.
+
+Rules:
 - Return ONLY Python code.
-- Do NOT include markdown fences (no ```).
-- Do NOT include explanations, comments outside code, or alternative versions.
-- Do NOT print example calls unless the TASK explicitly asks for them.
-- Make sure the code is syntactically valid and can run as-is.
+- Do NOT include markdown fences.
+- Do NOT include comments outside code.
+- Do NOT add assert statements at the bottom.
+- Do NOT add demo test values unless the task explicitly asks for them.
+- The script must read input from the user if needed.
+- Handle invalid input gracefully.
+- The code should be correct for the given task.
 
 TASK:
 {task}

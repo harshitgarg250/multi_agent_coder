@@ -22,13 +22,8 @@ class TesterAgent:
             code = "\n".join(lines)
         return textwrap.dedent(code).strip()
 
-    def run_code(self, code: str) -> tuple[bool, str]:
-        """
-        code: full Python script as string
-        return: (success: bool, output: str)
-        """
+    def run_code(self, code: str, input_data: str = "") -> dict:
         code = self.clean_code(code)
-
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir) / "temp_script.py"
             tmp_path.write_text(code, encoding="utf-8")
@@ -36,18 +31,22 @@ class TesterAgent:
             try:
                 result = subprocess.run(
                     [self.python_exec, str(tmp_path)],
+                    input=input_data,
                     capture_output=True,
                     text=True,
                     timeout=10
                 )
             except subprocess.TimeoutExpired:
-                return False, "Error: Code execution timed out."
+                return {
+                    "success": False,
+                    "stdout": "",
+                    "stderr": "Error: Code execution timed out.",
+                    "exit_code": None,
+                }
 
-            output = ""
-            if result.stdout:
-                output += "STDOUT:\n" + result.stdout
-            if result.stderr:
-                output += "\nSTDERR:\n" + result.stderr
-
-            success = result.returncode == 0
-            return success, output.strip()
+            return {
+                "success": result.returncode == 0,
+                "stdout": result.stdout or "",
+                "stderr": result.stderr or "",
+                "exit_code": result.returncode,
+            }
