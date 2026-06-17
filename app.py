@@ -1,57 +1,32 @@
-# app.py
-# Streamlit web UI for Coder Agent
-
 import streamlit as st
-import ollama
+from agents.coder import CoderAgent
+from agents.tester import TesterAgent
 
-MODEL_NAME = "llama3.2"
+def run_pipeline(user_query: str, input_data: str):
+    coder = CoderAgent()
+    tester = TesterAgent()
 
-def generate_code(user_request: str) -> str:
-    prompt = f"""
-You are a coding assistant. Generate clean, working code.
+    code = coder.generate_code(user_query)
+    result = tester.run_code(code, input_data=input_data)
 
-User request:
-{user_request}
+    return code, result
 
-Rules:
-- Only generate code.
-- Use Python by default unless user specifies another language.
-- Add short comments in code.
-- No extra explanation text.
+st.title("Multi-Agent Coding Assistant")
 
-Generate code:
-"""
+user_query = st.text_area("Describe your coding task:")
+user_input_data = st.text_input("Sample input for your script (optional):", "1 2 3 4 5")
 
-    response = ollama.chat(
-        model=MODEL_NAME,
-        messages=[{"role": "user", "content": prompt}]
-    )
+if st.button("Run"):
+    with st.spinner("Generating and running code..."):
+        code, result = run_pipeline(user_query, input_data=user_input_data + "\n")
 
-    code = response["message"]["content"].strip()
-    return code
+    st.subheader("Generated Code")
+    st.code(code, language="python")
 
-
-st.set_page_config(page_title="Coder Agent", page_icon="💻")
-
-st.title("🤖 Multi-Agent Coding Assistant (Day 1: Coder Agent)")
-st.markdown("### Local Ollama (llama3.2)")
-
-st.markdown("Enter your coding request:")
-
-user_input = st.text_input(
-    "Your request:",
-    placeholder="e.g., Write a Python function to reverse a string"
-)
-
-if st.button("Generate Code"):
-    if not user_input:
-        st.warning("Please enter a coding request.")
-    else:
-        with st.spinner("Generating code..."):
-            code = generate_code(user_input)
-
-        st.markdown("### Generated Code")
-        st.code(code, language="python")
-
-st.markdown("---")
-st.caption("Built with Ollama (local LLM) + Streamlit")
+    st.subheader("Execution Result")
+    st.write("Success:", result["success"])
+    st.write("Exit code:", result["exit_code"])
+    if result["stdout"]:
+        st.text_area("STDOUT", result["stdout"], height=150)
+    if result["stderr"]:
+        st.text_area("STDERR", result["stderr"], height=150)
