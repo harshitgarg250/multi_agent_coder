@@ -17,17 +17,18 @@ class CoderAgent:
         prompt = f"""
 You are a senior Python developer.
 
-Write ONE complete Python script that solves the TASK.
+Write ONE complete Python script for the TASK.
 
-Very important rules:
-- Follow the TASK exactly, do not invent extra features.
-- Do NOT build a calculator or REPL unless the task explicitly says so.
+Rules:
 - Return ONLY Python code.
+- Do NOT use map() for stored values.
+- Do NOT use iterators when you need len(), indexing, min(), or max().
+- Convert input into a list of integers.
+- Handle empty input gracefully.
+- Handle invalid input with a clear error message.
+- Print average, minimum, and maximum.
 - Do NOT include markdown fences.
-- Do NOT include explanations, comments, or docstrings.
-- Do NOT include assert statements or tests.
-- If input is needed, read it once using input().
-- Handle invalid input with clear error messages and exit.
+- Do NOT include explanations or tests.
 
 TASK:
 {task}
