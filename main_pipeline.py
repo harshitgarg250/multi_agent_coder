@@ -22,16 +22,17 @@ def run_pipeline(user_query: str, input_data: str = "", max_iterations: int = 3)
     iterations = []
 
     for i in range(1, max_iterations + 1):
+        clean_code = tester.clean_code(code)
         result = tester.run_code(code, input_data=input_data)
-        critique = critic.review(user_query, code, result)
+        critique = critic.review(user_query, clean_code, result)
         approved = critic.is_approved(critique)
 
-        security_report = security_critic.scan(code)
+        security_report = security_critic.scan(clean_code)
         security_passed = security_report.passed
 
         iterations.append({
             "iteration": i,
-            "code": code,
+            "code": clean_code,
             "result": result,
             "critique": critique,
             "approved": approved,
@@ -48,7 +49,7 @@ def run_pipeline(user_query: str, input_data: str = "", max_iterations: int = 3)
                 combined_feedback += (
                     "\n\nSECURITY ISSUES (must fix):\n" + security_report.summary()
                 )
-            code = coder.generate_code(user_query, previous_code=code, critique=combined_feedback)
+            code = coder.generate_code(user_query, previous_code=clean_code, critique=combined_feedback)
 
     return tasks, iterations
 
