@@ -70,3 +70,28 @@ def test_clear_history_removes_all_runs(tmp_path, monkeypatch):
 
     history_store.clear_history()
     assert history_store.get_all_runs() == []
+
+
+def test_toggle_pin_sets_and_unsets(tmp_path, monkeypatch):
+    _use_temp_db(tmp_path, monkeypatch)
+
+    run_id = history_store.save_run("Some task", True, True, 1, "code")
+    assert history_store.get_all_runs()[0]["pinned"] == 0
+
+    history_store.toggle_pin(run_id)
+    assert history_store.get_all_runs()[0]["pinned"] == 1
+
+    history_store.toggle_pin(run_id)
+    assert history_store.get_all_runs()[0]["pinned"] == 0
+
+
+def test_pinned_runs_sort_before_unpinned(tmp_path, monkeypatch):
+    _use_temp_db(tmp_path, monkeypatch)
+
+    history_store.save_run("First task", True, True, 1, "code1")
+    second_id = history_store.save_run("Second task", True, True, 1, "code2")
+    history_store.toggle_pin(second_id)
+
+    runs = history_store.get_all_runs()
+    assert runs[0]["task"] == "Second task"
+    assert runs[0]["pinned"] == 1

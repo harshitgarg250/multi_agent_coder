@@ -1,6 +1,6 @@
 # main_pipeline.py
 # Multi-agent self-correcting pipeline (CLI version):
-# Planner -> Coder -> Tester -> Critic -> (loop back to Coder if not approved)
+# Planner -> Coder -> Tester -> Critic -> Security Critic -> (loop back to Coder if not approved)
 
 from agents.planner import PlannerAgent
 from agents.coder import CoderAgent
@@ -9,16 +9,9 @@ from agents.critic import CriticAgent
 from agents.security_critic import SecurityCriticAgent
 
 
-def run_pipeline(user_query: str, input_data: str = "", max_iterations: int = 3):
-    planner = PlannerAgent()
-    coder = CoderAgent()
-    tester = TesterAgent()
-    critic = CriticAgent()
-    security_critic = SecurityCriticAgent()
-
-    tasks = planner.create_tasks(user_query)
-
-    code = coder.generate_code(user_query)
+def _self_correct_loop(coder, tester, critic, security_critic, user_query, code, input_data, max_iterations):
+    """Shared Coder -> Tester -> Critic -> Security loop, used by both a
+    fresh run and a refinement of an existing run."""
     iterations = []
 
     for i in range(1, max_iterations + 1):
@@ -51,7 +44,42 @@ def run_pipeline(user_query: str, input_data: str = "", max_iterations: int = 3)
                 )
             code = coder.generate_code(user_query, previous_code=clean_code, critique=combined_feedback)
 
+    return iterations
+
+
+def run_pipeline(user_query: str, input_data: str = "", max_iterations: int = 3):
+    planner = PlannerAgent()
+    coder = CoderAgent()
+    tester = TesterAgent()
+    critic = CriticAgent()
+    security_critic = SecurityCriticAgent()
+
+    tasks = planner.create_tasks(user_query)
+    code = coder.generate_code(user_query)
+
+    iterations = _self_correct_loop(
+        coder, tester, critic, security_critic, user_query, code, input_data, max_iterations
+    )
     return tasks, iterations
+
+
+def continue_pipeline(user_query: str, previous_code: str, refinement_instruction: str,
+                       input_data: str = "", max_iterations: int = 3):
+    """Refine an already-generated solution based on new user instructions.
+    Reuses the same self-correction loop, so the refined code still gets
+    tested, critiqued, and security-scanned before being accepted."""
+    coder = CoderAgent()
+    tester = TesterAgent()
+    critic = CriticAgent()
+    security_critic = SecurityCriticAgent()
+
+    critique_prompt = f"USER REQUESTED CHANGE:\n{refinement_instruction}"
+    code = coder.generate_code(user_query, previous_code=previous_code, critique=critique_prompt)
+
+    iterations = _self_correct_loop(
+        coder, tester, critic, security_critic, user_query, code, input_data, max_iterations
+    )
+    return iterations
 
 
 if __name__ == "__main__":
